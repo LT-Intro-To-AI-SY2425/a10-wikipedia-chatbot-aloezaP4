@@ -68,7 +68,7 @@ def get_match(
     Returns:
         text that matches
     """
-    p = re.compile(pattern, re.DOTALL | re.IGNORECASE)
+    p = re.compile(pattern, re.DOTALL)
     match = p.search(text)
 
     if not match:
@@ -121,20 +121,32 @@ def get_war_date(name: str) -> str:
 
     return match.group("start")
 
-def get_capital_name(country_name: str) -> str:
-    """Gets the capital of country
+def get_food_origin(name: str) -> str:
+    infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
+    pattern = r"(?<=Place of origin)(?P<origin>[A-Z][a-z]+)"
+    error_text = (
+        "Page infobox has no place of origin information"
+    )
+    match = get_match(infobox_text, pattern, error_text)
+
+    return match.group("origin")
+
+def get_country_capital(country_name: str) -> str:
+    """Gets the capital city of the given country
+
     Args:
-        country - country to get the capital of
+        country_name: name of the country to get the capital of
 
     Returns:
-        capital of given country
+        capital city of the given country
     """
     infobox_text = clean_text(get_first_infobox_text(get_page_html(country_name)))
-    print(infobox_text)
-    pattern = r"(?:Total Area*?)(?: ?[\d]+ )?(?P<area>[\d,.]+)(?:.*?)km"
-    error_text = "Page infobox has no area information"
+    pattern = r"(?<=Capital)(and largest city)?(?P<capital>[A-Z][\D]+)"
+    error_text = "Page infobox has no capital information"
     match = get_match(infobox_text, pattern, error_text)
-    return match.group("area")
+
+    return match.group("capital").strip()
+
 
 
 # below are a set of actions. Each takes a list argument and returns a list of answers
@@ -174,15 +186,19 @@ def polar_radius(matches: List[str]) -> List[str]:
     """
     return [get_polar_radius(matches[0])]
 
-def capital_name(matches: List[str]) -> List[str]:
-    """Returns name of capital in country matches
+def food_origin(matches: List[str]) -> List[str]:
+    return [get_food_origin(" ".join(matches))]
+
+def country_capital(matches: List[str]) -> List[str]:
+    """Returns birth date of named person in matches
+
     Args:
-        matches - match from pattern of country to find capital
+        matches - match from pattern of person's name to find birth date of
 
     Returns:
-        capital of country
+        birth date of named person
     """
-    return [get_capital_name(" ".join(matches))]
+    return [get_country_capital(" ".join(matches))]
 
 
 # dummy argument is ignored and doesn't matter
@@ -201,7 +217,9 @@ pa_list: List[Tuple[Pattern, Action]] = [
     ("when was % born".split(), birth_date),
     ("what is the polar radius of %".split(), polar_radius),
     ("when did % start".split(), war_date),
-    ("What is the capital of %".split(), capital_name),
+    ("where did % originate".split(), food_origin),
+    ("what is the capital of %".split(), country_capital),
+
 
     (["bye"], bye_action),
 ]
