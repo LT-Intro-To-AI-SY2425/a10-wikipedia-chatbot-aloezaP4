@@ -113,7 +113,9 @@ def get_birth_date(name: str) -> str:
 
 def get_war_date(name: str) -> str:
     infobox_text = clean_text(get_first_infobox_text(get_page_html(name)))
-    pattern = r"(?:Date\D*)(?P<start>\d{1,2} \w+ \d{4})"
+   
+    #pattern = r"(?:Date\D*)(?P<start>\d{1,2} \w+ \d{4})"
+    pattern = r"(?:Date)(?P<start>(\d{1,2} \w+,? \d{4}|\w+ \d{1,2},? \d{4}))"
     error_text = (
         "Page infobox has no war start date"
     )
